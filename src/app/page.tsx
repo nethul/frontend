@@ -63,12 +63,13 @@ export default function Home() {
   // Helper fetch supporting configurable backend URL (Heroku / Local)
   const apiFetch = async (endpoint: string, options?: RequestInit) => {
     const backendBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "";
-    try {
-      const targetUrl = backendBase ? `${backendBase}${endpoint}` : endpoint;
+    if (backendBase) {
+      const targetUrl = `${backendBase}${endpoint}`;
       const res = await fetch(targetUrl, options);
-      if (res.ok) return res;
-    } catch {
-      // try local fallback
+      if (!res.ok) {
+        throw new Error(`Backend (${targetUrl}) returned ${res.status}: ${res.statusText}`);
+      }
+      return res;
     }
     return await fetch(`http://127.0.0.1:8000${endpoint}`, options);
   };
